@@ -3,51 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小薇原谅礼包</title>
+    <title>认错小能手</title>
     <style>
         body {
             margin: 0;
             padding: 20px;
             min-height: 100vh;
-            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            background: linear-gradient(135deg, #ffe6f2 0%, #ffc2e0 100%);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            font-family: "Comic Sans MS", cursive;
         }
+
+        /* 爱心装饰 */
+        .heart {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #ff4d94;
+            transform: rotate(45deg);
+            animation: floatHeart 5s infinite;
+            opacity: 0.8;
+        }
+        .heart::before, .heart::after {
+            content: "";
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #ff4d94;
+            border-radius: 50%;
+        }
+        .heart::before { top: -10px; left: 0; }
+        .heart::after { top: 0; left: -10px; }
 
         .text-container {
             text-align: center;
             margin-bottom: 40px;
             animation: float 3s ease-in-out infinite;
+            position: relative;
         }
 
         .funny-text {
-            font-size: 2.5rem;
+            font-size: 2.2rem;
             font-weight: bold;
-            color: #e74c3c;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-            margin: 10px 0;
-            transform: rotate(-5deg);
-            animation: shake 2s infinite;
+            color: #ff3385;
+            text-shadow: 2px 2px 4px rgba(255, 100, 150, 0.3);
+            margin: 15px 0;
+            transform: rotate(-3deg);
+            animation: shake 2.5s infinite;
+        }
+        .funny-text span {
+            color: #ff77a9;
+            font-size: 2.5rem;
         }
 
         .btn {
-            padding: 15px 30px;
-            font-size: 1.2rem;
-            background: linear-gradient(45deg, #4CAF50, #8BC34A);
+            padding: 15px 35px;
+            font-size: 1.3rem;
+            background: linear-gradient(45deg, #ff66b2, #ff3385);
             color: white;
             border: none;
             border-radius: 50px;
             cursor: pointer;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 5px 15px rgba(255, 100, 150, 0.3);
             transition: all 0.3s ease;
+            font-family: "Comic Sans MS", cursive;
         }
-
         .btn:hover {
             transform: scale(1.1) rotate(2deg);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            box-shadow: 0 8px 20px rgba(255, 100, 150, 0.5);
         }
 
         .success-modal {
@@ -57,55 +84,77 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0,0,0,0.6);
             align-items: center;
             justify-content: center;
             z-index: 100;
         }
-
         .modal-content {
             background: white;
             padding: 30px;
             border-radius: 20px;
             text-align: center;
             animation: pop 0.5s;
+            box-shadow: 0 0 20px rgba(255, 100, 150, 0.4);
         }
-
         .modal-text {
             font-size: 1.5rem;
-            color: #333;
+            color: #ff3385;
             margin-bottom: 20px;
         }
+        .modal-text span {
+            font-size: 2rem;
+            color: #ff66b2;
+        }
 
+        /* 动画 */
         @keyframes float {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-15px); }
         }
-
         @keyframes shake {
-            0%, 100% { transform: rotate(-5deg); }
-            50% { transform: rotate(5deg); }
+            0%, 100% { transform: rotate(-3deg); }
+            50% { transform: rotate(3deg); }
         }
-
         @keyframes pop {
             from { transform: scale(0); }
             to { transform: scale(1); }
         }
+        @keyframes floatHeart {
+            0% {
+                transform: rotate(45deg) translateY(0);
+                opacity: 0.8;
+            }
+            50% {
+                transform: rotate(45deg) translateY(-50px);
+                opacity: 0.5;
+            }
+            100% {
+                transform: rotate(45deg) translateY(-100px);
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- 随机爱心装饰 -->
+    <div class="heart" style="top: 20%; left: 10%; animation-delay: 0s;"></div>
+    <div class="heart" style="top: 30%; left: 85%; animation-delay: 1s;"></div>
+    <div class="heart" style="top: 70%; left: 20%; animation-delay: 2s;"></div>
+    <div class="heart" style="top: 60%; left: 80%; animation-delay: 3s;"></div>
+
     <div class="text-container">
-        <div class="funny-text">小薇，我错了~</div>
-        <div class="funny-text" style="color: #9b59b6; transform: rotate(3deg);">真的知道错啦！</div>
-        <div class="funny-text" style="color: #3498db; transform: rotate(-2deg);">原谅我嘛~</div>
+        <div class="funny-text">我错啦<span>❤️</span></div>
+        <div class="funny-text" style="transform: rotate(2deg);">别不开心啦~</div>
+        <div class="funny-text" style="transform: rotate(-2deg);">原谅我好不好<span>🥺</span></div>
     </div>
 
-    <button class="btn" onclick="showSuccess()">原谅，领取礼包</button>
+    <button class="btn" onclick="showSuccess()">原谅我！领可爱礼包</button>
 
     <div class="success-modal" id="successModal">
         <div class="modal-content">
-            <div class="modal-text">领取成功！</div>
-            <div class="modal-text">请截图发送至客服</div>
+            <div class="modal-text"><span>领取成功！</span></div>
+            <div class="modal-text">截图发给客服哦~</div>
         </div>
     </div>
 
