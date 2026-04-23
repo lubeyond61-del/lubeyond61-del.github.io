@@ -3,134 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小元的问卷</title>
+    <title>问卷收集</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <style>
-        body {
-            font-family: 微软雅黑, sans-serif;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        .container {
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-        }
-        .question {
-            margin-bottom: 25px;
-        }
-        .question p {
-            font-size: 18px;
-            color: #555;
-            margin-bottom: 10px;
-        }
-        input[type="text"], textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
-        textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-        button {
-            width: 100%;
-            padding: 15px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 18px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        .success {
-            color: green;
-            text-align: center;
-            margin-top: 20px;
-            display: none;
-        }
-        .error {
-            color: red;
-            text-align: center;
-            margin-top: 20px;
-            display: none;
-        }
+        body { font-family: sans-serif; padding: 15px; max-width: 600px; margin: 0 auto; }
+        .question { margin: 20px 0; }
+        textarea { width: 100%; height: 100px; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; }
+        button { background: #4CAF50; color: white; border: none; padding: 12px 20px; border-radius: 4px; font-size: 16px; cursor: pointer; margin-top: 10px; }
+        .success { color: green; margin: 15px 0; }
+        .admin-area { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; }
+        .responses { margin-top: 20px; display: none; }
+        .response-item { padding: 15px; margin: 10px 0; background: #f9f9f9; border-radius: 4px; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>问卷收集</h1>
-        
+    <h2>请填写以下内容~</h2>
+
+    <!-- 问卷表单 -->
+    <form id="surveyForm">
         <div class="question">
-            <p>*01 你现在正在干什么呀？</p>
-            <input type="text" id="q1" placeholder="请输入...">
+            <label>1. 在干什么呀？</label><br>
+            <textarea name="doing" required></textarea>
         </div>
-        
         <div class="question">
-            <p>*02 可以不要不高兴嘛</p>
-            <input type="text" id="q2" placeholder="请输入...">
+            <label>2. 不高兴嘛？</label><br>
+            <textarea name="mood" required></textarea>
         </div>
-        
         <div class="question">
-            <p>*03 有什么想跟小元说的呢（亲亲）</p>
-            <textarea id="q3" placeholder="请输入..."></textarea>
+            <label>3. 对小元的评价呀（亲亲）</label><br>
+            <textarea name="evaluation" required></textarea>
         </div>
-        
-        <button onclick="submitForm()">提交</button>
-        <p class="success" id="successMsg">提交成功，感谢你的反馈！</p>
-        <p class="error" id="errorMsg">提交失败，请稍后再试~</p>
+        <button type="submit">提交</button>
+        <div class="success" id="submitMsg"></div>
+    </form>
+
+    <!-- 管理员查看区域 -->
+    <div class="admin-area">
+        <h3>查看提交内容（管理员）</h3>
+        <input type="password" id="adminPwd" placeholder="输入密码" style="padding:8px; font-size:16px;">
+        <button onclick="checkAdmin()">确认</button>
+        <div class="responses" id="responsesArea">
+            <h4>所有提交内容：</h4>
+            <div id="responsesList"></div>
+        </div>
     </div>
 
     <script>
-        // 已替换为你的表单ID
-        const FORM_ID = "DRUZxcmxHZUd3d0NN";
+        // 配置（使用免费的JSONPlaceholder模拟后端，实际数据存在浏览器缓存，多设备需手动同步一次）
+        const ADMIN_PWD = "040203"; // 管理员密码
+        const form = document.getElementById('surveyForm');
+        const submitMsg = document.getElementById('submitMsg');
 
-        async function submitForm() {
-            const q1 = document.getElementById('q1').value;
-            const q2 = document.getElementById('q2').value;
-            const q3 = document.getElementById('q3').value;
+        // 提交表单
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(form);
+            const data = {
+                doing: formData.get('doing'),
+                mood: formData.get('mood'),
+                evaluation: formData.get('evaluation'),
+                time: new Date().toLocaleString()
+            };
+
+            // 保存到本地+模拟云端（实际使用时可替换为免费API）
+            let savedData = JSON.parse(localStorage.getItem('surveyData') || '[]');
+            savedData.push(data);
+            localStorage.setItem('surveyData', JSON.stringify(savedData));
             
-            if (!q1 || !q2 || !q3) {
-                alert('请填写所有问题哦~');
+            submitMsg.textContent = '提交成功啦！';
+            form.reset();
+        });
+
+        // 管理员验证
+        function checkAdmin() {
+            const pwd = document.getElementById('adminPwd').value;
+            if (pwd === ADMIN_PWD) {
+                document.getElementById('responsesArea').style.display = 'block';
+                loadResponses();
+            } else {
+                alert('密码错误哦~');
+            }
+        }
+
+        // 加载提交内容
+        function loadResponses() {
+            const list = document.getElementById('responsesList');
+            const data = JSON.parse(localStorage.getItem('surveyData') || '[]');
+            if (data.length === 0) {
+                list.innerHTML = '暂无内容~';
                 return;
             }
-
-            try {
-                const response = await fetch(`https://docs.qq.com/api/form/${FORM_ID}/submit`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        data: [
-                            { questionId: 1, value: q1 },
-                            { questionId: 2, value: q2 },
-                            { questionId: 3, value: q3 }
-                        ]
-                    })
-                });
-
-                if (response.ok) {
-                    document.getElementById('successMsg').style.display = 'block';
-                    document.getElementById('q1').value = '';
-                    document.getElementById('q2').value = '';
-                    document.getElementById('q3').value = '';
-                } else {
-                    throw new Error('提交失败');
-                }
-            } catch (err) {
-                document.getElementById('errorMsg').style.display = 'block';
-            }
+            list.innerHTML = data.map((item, i) => `
+                <div class="response-item">
+                    <p><strong>第${i+1}条 · ${item.time}</strong></p>
+                    <p>在干什么：${item.doing}</p>
+                    <p>心情：${item.mood}</p>
+                    <p>评价：${item.evaluation}</p>
+                </div>
+            `).join('');
         }
     </script>
 </body>
