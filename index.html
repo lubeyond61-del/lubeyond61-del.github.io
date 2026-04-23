@@ -1,147 +1,51 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>简单问卷</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        .container {
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-        }
-        .question {
-            margin-bottom: 25px;
-        }
-        .question p {
-            font-size: 18px;
-            color: #555;
-            margin-bottom: 10px;
-        }
-        input[type="text"], textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
-        textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-        button {
-            width: 100%;
-            padding: 15px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 18px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        .success {
-            color: green;
-            text-align: center;
-            margin-top: 20px;
-            display: none;
-        }
-        .error {
-            color: red;
-            text-align: center;
-            margin-top: 20px;
-            display: none;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>问卷收集</h1>
-        
-        <div class="question">
-            <p>1. 你现在正在干什么呀？</p>
-            <input type="text" id="q1" placeholder="请输入...">
-        </div>
-        
-        <div class="question">
-            <p>2. 可以不要生气嘛？</p>
-            <input type="text" id="q2" placeholder="请输入...">
-        </div>
-        
-        <div class="question">
-            <p>3. 你想对小元说点什么呢？（亲亲）</p>
-            <textarea id="q3" placeholder="请输入..."></textarea>
-        </div>
-        
-        <button onclick="submitForm()">提交</button>
-        <p class="success" id="successMsg">提交成功，感谢你的反馈！</p>
-        <p class="error" id="errorMsg">提交失败，请稍后再试~</p>
-    </div>
+function submitForm(event) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const formResponses = {};
 
-    <script>
-        // 已替换为新令牌
-        const GITHUB_TOKEN = "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";
-        const GITHUB_USER = "lubeyond61-del";
-        const REPO_NAME = "lubeyond61-del.github.io"; // 你的仓库名
+    formData.forEach((value, key) => {
+        formResponses[key] = value;
+    });
 
-        async function submitForm() {
-            const q1 = document.getElementById('q1').value;
-            const q2 = document.getElementById('q2').value;
-            const q3 = document.getElementById('q3').value;
-            
-            if (!q1 || !q2 || !q3) {
-                alert('请填写所有问题哦~');
-                return;
+    // Get current timestamp
+    const timestamp = new Date().toISOString();
+    formResponses.timestamp = timestamp;
+
+    // Fetch existing data from data.json
+    fetch('data.json')
+        .then(response => response.json())
+        .then(existingData => {
+            if (!Array.isArray(existingData)) {
+                existingData = [];
             }
+            existingData.push(formResponses);
 
-            // 构造Issue内容
-            const issueTitle = `问卷提交 - ${new Date().toLocaleString()}`;
-            const issueBody = `
-1. 正在做的事：${q1}
-2. 是否生气：${q2}
-3. 对小元说的话：${q3}
-            `;
+            // Update the data.json file with new array
+            createOrUpdateDataJSON(existingData);
+        })
+        .catch(error => console.error('Error fetching data.json:', error));
+}
 
-            try {
-                // 调用GitHub API创建Issue
-                const response = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO_NAME}/issues`, {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `token ${GITHUB_TOKEN}`,
-                        "Accept": "application/vnd.github.v3+json"
-                    },
-                    body: JSON.stringify({
-                        title: issueTitle,
-                        body: issueBody
-                    })
-                });
+function createOrUpdateDataJSON(data) {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const file = new File([blob], 'data.json', { type: 'application/json' });
 
-                if (response.ok) {
-                    document.getElementById('successMsg').style.display = 'block';
-                    document.querySelector('button').disabled = true;
-                    document.querySelector('button').style.backgroundColor = '#ccc';
-                } else {
-                    throw new Error("提交失败");
-                }
-            } catch (err) {
-                document.getElementById('errorMsg').style.display = 'block';
-            }
-        }
-    </script>
-</body>
-</html>
+    const url = 'https://api.github.com/repos/lubeyond61-del/lubeyond61-del.github.io/contents/data.json';
+    const token = 'YOUR_GITHUB_TOKEN'; // Add your GitHub token
+
+    fetch(url, {
+        method: 'PUT',
+        headers: {
+            'Authorization': `token ${token}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            message: 'Update data.json with new response',
+            content: btoa(blob),
+            sha: 'YOUR_DATA_JSON_SHA' // Replace with the actual SHA
+        })
+    })
+    .then(response => response.json())
+    .then(data => console.log('Data.json updated:', data))
+    .catch(error => console.error('Error updating data.json:', error));
+}
