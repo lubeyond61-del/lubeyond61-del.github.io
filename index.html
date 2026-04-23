@@ -4,104 +4,115 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>问卷收集</title>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <style>
-        body { font-family: sans-serif; padding: 15px; max-width: 600px; margin: 0 auto; }
-        .question { margin: 20px 0; }
-        textarea { width: 100%; height: 100px; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; }
-        button { background: #4CAF50; color: white; border: none; padding: 12px 20px; border-radius: 4px; font-size: 16px; cursor: pointer; margin-top: 10px; }
-        .success { color: green; margin: 15px 0; }
-        .admin-area { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; }
-        .responses { margin-top: 20px; display: none; }
-        .response-item { padding: 15px; margin: 10px 0; background: #f9f9f9; border-radius: 4px; }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .question {
+            margin-bottom: 15px;
+        }
+        textarea {
+            width: 100%;
+            height: 80px;
+            margin-top: 5px;
+        }
+        button {
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .responses {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ccc;
+        }
     </style>
 </head>
 <body>
-    <h2>请填写以下内容~</h2>
+    <div class="container">
+        <h2>问卷填写</h2>
+        <form id="questionnaire">
+            <div class="question">
+                <label>1. 在干什么呀？</label><br>
+                <textarea name="activity" required></textarea>
+            </div>
+            <div class="question">
+                <label>2. 不高兴嘛？</label><br>
+                <textarea name="mood" required></textarea>
+            </div>
+            <div class="question">
+                <label>3. 对小元的评价呀</label><br>
+                <textarea name="evaluation" required></textarea>
+            </div>
+            <button type="submit">提交</button>
+        </form>
 
-    <!-- 问卷表单 -->
-    <form id="surveyForm">
-        <div class="question">
-            <label>1. 在干什么呀？</label><br>
-            <textarea name="doing" required></textarea>
-        </div>
-        <div class="question">
-            <label>2. 不高兴嘛？</label><br>
-            <textarea name="mood" required></textarea>
-        </div>
-        <div class="question">
-            <label>3. 对小元的评价呀（亲亲）</label><br>
-            <textarea name="evaluation" required></textarea>
-        </div>
-        <button type="submit">提交</button>
-        <div class="success" id="submitMsg"></div>
-    </form>
-
-    <!-- 管理员查看区域 -->
-    <div class="admin-area">
-        <h3>查看提交内容（管理员）</h3>
-        <input type="password" id="adminPwd" placeholder="输入密码" style="padding:8px; font-size:16px;">
-        <button onclick="checkAdmin()">确认</button>
-        <div class="responses" id="responsesArea">
-            <h4>所有提交内容：</h4>
-            <div id="responsesList"></div>
+        <div class="responses">
+            <h3>已填写内容</h3>
+            <div id="responseList"></div>
         </div>
     </div>
 
     <script>
-        // 配置（使用免费的JSONPlaceholder模拟后端，实际数据存在浏览器缓存，多设备需手动同步一次）
-        const ADMIN_PWD = "040203"; // 管理员密码
-        const form = document.getElementById('surveyForm');
-        const submitMsg = document.getElementById('submitMsg');
+        const form = document.getElementById('questionnaire');
+        const responseList = document.getElementById('responseList');
 
-        // 提交表单
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
+        // 从本地存储加载已保存的回复
+        function loadResponses() {
+            const responses = JSON.parse(localStorage.getItem('questionnaireResponses') || '[]');
+            responses.forEach(addResponseToDOM);
+        }
+
+        // 添加回复到页面
+        function addResponseToDOM(response) {
+            const div = document.createElement('div');
+            div.className = 'response-item';
+            div.style.margin = '10px 0';
+            div.style.padding = '10px';
+            div.style.border = '1px solid #eee';
+            div.innerHTML = `
+                <p><strong>在干什么：</strong>${response.activity}</p>
+                <p><strong>心情：</strong>${response.mood}</p>
+                <p><strong>对小元的评价：</strong>${response.evaluation}</p>
+                <hr>
+            `;
+            responseList.prepend(div); // 新回复显示在前面
+        }
+
+        // 提交表单时处理
+        form.addEventListener('submit', function(e) {
+            e.preventDefault(); // 阻止页面跳转
+
+            // 获取表单数据
             const formData = new FormData(form);
-            const data = {
-                doing: formData.get('doing'),
+            const response = {
+                activity: formData.get('activity'),
                 mood: formData.get('mood'),
                 evaluation: formData.get('evaluation'),
                 time: new Date().toLocaleString()
             };
 
-            // 保存到本地+模拟云端（实际使用时可替换为免费API）
-            let savedData = JSON.parse(localStorage.getItem('surveyData') || '[]');
-            savedData.push(data);
-            localStorage.setItem('surveyData', JSON.stringify(savedData));
-            
-            submitMsg.textContent = '提交成功啦！';
+            // 保存到本地存储
+            const responses = JSON.parse(localStorage.getItem('questionnaireResponses') || '[]');
+            responses.push(response);
+            localStorage.setItem('questionnaireResponses', JSON.stringify(responses));
+
+            // 添加到页面显示
+            addResponseToDOM(response);
+
+            // 重置表单
             form.reset();
         });
 
-        // 管理员验证
-        function checkAdmin() {
-            const pwd = document.getElementById('adminPwd').value;
-            if (pwd === ADMIN_PWD) {
-                document.getElementById('responsesArea').style.display = 'block';
-                loadResponses();
-            } else {
-                alert('密码错误哦~');
-            }
-        }
-
-        // 加载提交内容
-        function loadResponses() {
-            const list = document.getElementById('responsesList');
-            const data = JSON.parse(localStorage.getItem('surveyData') || '[]');
-            if (data.length === 0) {
-                list.innerHTML = '暂无内容~';
-                return;
-            }
-            list.innerHTML = data.map((item, i) => `
-                <div class="response-item">
-                    <p><strong>第${i+1}条 · ${item.time}</strong></p>
-                    <p>在干什么：${item.doing}</p>
-                    <p>心情：${item.mood}</p>
-                    <p>评价：${item.evaluation}</p>
-                </div>
-            `).join('');
-        }
+        // 页面加载时加载已有的回复
+        loadResponses();
     </script>
 </body>
 </html>
